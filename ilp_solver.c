@@ -23,149 +23,123 @@
 #include "gurobi_c.h"
 #include "sudoku_board.h"
 
+void createEmptyProj(int dim, int** matrix, char** names, char* vtype, double* lb, char* cursor,char* namestorage );
+void decrement(int** matrix, int size);
 
 int solver(Board* board) {
-  FILE     *fp    = NULL; /*todo delete*/
-  GRBenv   *env   = NULL;
-  GRBmodel *model = NULL;
-  int dim = board->edgeSize;
-  printf("break 1\n");
-  int*		ind = (int*)calloc(dim,sizeof(int));
-  double*   val = (double*)calloc(dim,sizeof(double));
-  double*   lb = (double*)calloc(dim*dim*dim,sizeof(double));
-  char*     vtype = (char*)calloc(dim*dim*dim,sizeof(char));
-  char**    names = (char**)calloc(dim*dim*dim,sizeof(char*));
-  char*     namestorage= (char*)calloc(10*dim*dim*dim,sizeof(char));
-  char*     cursor;
-  int       optimstatus;
-  double    objval;
-  int       zero = 0;
-  int       i, j, v, ig, jg, count;
-  int       error = 0;
-  int ** 	copiedMtx;
-  printf("break 11\n");
-
-  /*allocate copiedMtx*/
+	FILE     *fp    = NULL; /*todo delete*/
+	GRBenv   *env   = NULL;
+	GRBmodel *model = NULL;
+	int dim = board->edgeSize;
+	int*		ind = (int*)calloc(dim,sizeof(int));
+	double*   val = (double*)calloc(dim,sizeof(double));
+	double*   lb = (double*)calloc(dim*dim*dim,sizeof(double));
+	char*     vtype = (char*)calloc(dim*dim*dim,sizeof(char));
+	char**    names = (char**)calloc(dim*dim*dim,sizeof(char*));
+	char*     namestorage= (char*)calloc(10*dim*dim*dim,sizeof(char));
+	char*     cursor;
+	int       optimstatus;
+	double    objval;
+	int       zero = 0;
+	int       i, j, v, ig, jg, count;
+	int       error = 0;
+	int ** 	copiedMtx;
+	printf("break 11\n");
 
 
-  	/*allocate memory for the board's matrix*/
-  	copiedMtx = calloc(board->edgeSize, sizeof(int*));
-  	if (copiedMtx == NULL) {
-  		return 999; /*if allocation failed, returns NULL*/
-  	}
-  	for(i=0 ;i < board->edgeSize; i++) {
-  		copiedMtx[i] = calloc(board->edgeSize, sizeof(int));
-  	}
-  	printf("%d\n",board->edgeSize);
-  	printBoard(board);
-  /*copied the matrix from the board to copiedBoard*/
-  copyMatrix(board->matrix, copiedMtx, board->edgeSize);
-  printf("break 111\n");
 
-  /*decrement each  cell by 1. empty cells are noted by -1*/
-  for(i=0; i<board->edgeSize ; i++) {
-	  for(j=0; j<board->edgeSize ; j++) {
-		  copiedMtx[i][j] = copiedMtx[i][j] - 1;
-	    }
-  }
-  printf("break 2\n");
+	/*allocate memory for the board's matrix*/
+	copiedMtx = calloc(board->edgeSize, sizeof(int*));
+	createMatrix(copiedMtx, dim);
+	printBoard(board);
 
-  /* Create an empty model */
-  cursor = namestorage;
-  for (i = 0; i < dim; i++) {
-    for (j = 0; j < dim; j++) {
-      for (v = 0; v < dim; v++) {
-        if (copiedMtx[i][j] == v) {
-        	lb[i*dim*dim+j*dim+v] = 1;
-        }
-        else {
-        	lb[i*dim*dim+j*dim+v] = 0;
-        }
-        vtype[i*dim*dim+j*dim+v] = GRB_BINARY;
+	/*copied the matrix from the board to copiedBoard*/
+	copyMatrix(board->matrix, copiedMtx, dim);
+	printf("break 111\n");
 
-        names[i*dim*dim+j*dim+v] = cursor;
-        sprintf(names[i*dim*dim+j*dim+v], "x[%d,%d,%d]", i, j, v+1);
-        cursor += strlen(names[i*dim*dim+j*dim+v]) + 1;
-      }
-    }
-  }
-  printf("break 3\n");
+	/*decrement each  cell by 1. empty cells are noted by -1*/
+	decrement(copiedMtx, dim);
+	printf("break 2\n");
 
-  /* Create environment */
-  error = GRBloadenv(&env, "sudoku.log");
-  if (error) goto QUIT;
+	/* Create an empty model */
+	createEmptyProj(dim, copiedMtx, names, vtype, lb,cursor,namestorage);
+	printf("break 3\n");
 
-  /* Create new model */
-  error = GRBnewmodel(env, &model, "sudoku", dim*dim*dim, NULL, lb, NULL, vtype, names);
-  if (error) goto QUIT;
+	/* Create environment */
+	error = GRBloadenv(&env, "sudoku.log");
+	if (error) goto QUIT;
 
-  printf("break 4\n");
+	/* Create new model */
+	error = GRBnewmodel(env, &model, "sudoku", dim*dim*dim, NULL, lb, NULL, vtype, names);
+	if (error) goto QUIT;
 
-  /* Each cell gets a value */
-  for (i = 0; i < dim; i++) {
-    for (j = 0; j < dim; j++) {
-      for (v = 0; v < dim; v++) {
-        ind[v] = i*dim*dim + j*dim + v;
-        val[v] = 1.0;
-      }
+	printf("break 4\n");
 
-      error = GRBaddconstr(model, dim, ind, val, GRB_EQUAL, 1.0, NULL);
-      if (error) goto QUIT;
-    }
-  }
-  printf("break 5\n");
+	/* Each cell gets a value */
+	for (i = 0; i < dim; i++) {
+		for (j = 0; j < dim; j++) {
+			for (v = 0; v < dim; v++) {
+				ind[v] = i*dim*dim + j*dim + v;
+				val[v] = 1.0;
+				}
 
-  /* Each value must appear once in each row */
-  for (v = 0; v < dim; v++) {
-    for (j = 0; j < dim; j++) {
-      for (i = 0; i < dim; i++) {
-        ind[i] = i*dim*dim + j*dim + v;
-        val[i] = 1.0;
-      }
+			error = GRBaddconstr(model, dim, ind, val, GRB_EQUAL, 1.0, NULL);
+			if (error) goto QUIT;
+		}
+	}
+	printf("break 5\n");
 
-      error = GRBaddconstr(model, dim, ind, val, GRB_EQUAL, 1.0, NULL);
-      if (error) goto QUIT;
-    }
-  }
-  printf("break 6\n");
+	/* Each value must appear once in each row */
+	for (v = 0; v < dim; v++) {
+		for (j = 0; j < dim; j++) {
+			for (i = 0; i < dim; i++) {
+				ind[i] = i*dim*dim + j*dim + v;
+				val[i] = 1.0;
+			}
 
-  /* Each value must appear once in each column */
-  for (v = 0; v < dim; v++) {
-    for (i = 0; i < dim; i++) {
-      for (j = 0; j < dim; j++) {
-        ind[j] = i*dim*dim + j*dim + v;
-        val[j] = 1.0;
-      }
+			error = GRBaddconstr(model, dim, ind, val, GRB_EQUAL, 1.0, NULL);
+			if (error) goto QUIT;
+		}
+	}
+	printf("break 6\n");
 
-      error = GRBaddconstr(model, dim, ind, val, GRB_EQUAL, 1.0, NULL);
-      if (error) goto QUIT;
-    }
-  }
-  printf("break 7\n");
+	/* Each value must appear once in each column */
+	for (v = 0; v < dim; v++) {
+		for (i = 0; i < dim; i++) {
+			for (j = 0; j < dim; j++) {
+				ind[j] = i*dim*dim + j*dim + v;
+				val[j] = 1.0;
+			}
+
+			error = GRBaddconstr(model, dim, ind, val, GRB_EQUAL, 1.0, NULL);
+			if (error) goto QUIT;
+		}
+	}
+	printf("break 7\n");
 
 
-  /* Each value must appear once in each subgrid */
-  for (v = 0; v < dim; v++) {
-    for (ig = 0; ig < board->blockLength; ig++) {
-      for (jg = 0; jg < board->blockHeight; jg++) {
-        count = 0;
-        for (i = ig*board->blockHeight; i < (ig+1)*board->blockHeight; i++) {
-          for (j = jg*board->blockLength; j < (jg+1)*board->blockLength; j++) {
-            ind[count] = i*dim*dim + j*dim + v;
-            val[count] = 1.0;
-            count++;
-          }
-        }
-        error = GRBaddconstr(model, dim, ind, val, GRB_EQUAL, 1.0, NULL);
-        if (error) goto QUIT;
-      }
-    }
-  }
-  printf("break 8\n");
+	/* Each value must appear once in each subgrid */
+	for (v = 0; v < dim; v++) {
+		for (ig = 0; ig < board->blockLength; ig++) {
+			for (jg = 0; jg < board->blockHeight; jg++) {
+				count = 0;
+				for (i = ig*board->blockHeight; i < (ig+1)*board->blockHeight; i++) {
+					for (j = jg*board->blockLength; j < (jg+1)*board->blockLength; j++) {
+						ind[count] = i*dim*dim + j*dim + v;
+						val[count] = 1.0;
+						count++;
+					}
+				}
+				error = GRBaddconstr(model, dim, ind, val, GRB_EQUAL, 1.0, NULL);
+				if (error) goto QUIT;
+			}
+		}
+	}
+	printf("break 8\n");
 
-  /* Optimize model */
-  error = GRBoptimize(model);
-  if (error) goto QUIT;
+	/* Optimize model */
+	error = GRBoptimize(model);
+	if (error) goto QUIT;
 
 	/*print copyMtx for debug purposes*/
 	for (i=0 ; i < board->edgeSize ; i++) {
@@ -173,43 +147,43 @@ int solver(Board* board) {
 			printf("%f ", val[i*board->edgeSize + j]);
 		}
 	}
-  /* Write model to 'sudoku.lp' */
-  error = GRBwrite(model, "sudoku.lp");
-  if (error) goto QUIT;
+	/* Write model to 'sudoku.lp' */
+	error = GRBwrite(model, "sudoku.lp");
+	if (error) goto QUIT;
 
-  /* Capture solution information */
-  error = GRBgetintattr(model, GRB_INT_ATTR_STATUS, &optimstatus);
-  if (error) goto QUIT;
-  error = GRBgetdblattr(model, GRB_DBL_ATTR_OBJVAL, &objval);
-  if (error) goto QUIT;
+	/* Capture solution information */
+	error = GRBgetintattr(model, GRB_INT_ATTR_STATUS, &optimstatus);
+	if (error) goto QUIT;
+	error = GRBgetdblattr(model, GRB_DBL_ATTR_OBJVAL, &objval);
+	if (error) goto QUIT;
 
-  printf("\nOptimization complete\n");
-  if (optimstatus == GRB_OPTIMAL)
-    printf("Optimal objective: %.4e\n", objval);
-  else if (optimstatus == GRB_INF_OR_UNBD)
-    printf("Model is infeasible or unbounded\n");
-  else
-    printf("Optimization was stopped early\n");
-  printf("\n");
+	printf("\nOptimization complete\n");
+	if (optimstatus == GRB_OPTIMAL)
+	printf("Optimal objective: %.4e\n", objval);
+	else if (optimstatus == GRB_INF_OR_UNBD)
+	printf("Model is infeasible or unbounded\n");
+	else
+	printf("Optimization was stopped early\n");
+	printf("\n");
 
-  printf("break 9\n");
-QUIT:
+	printf("break 9\n");
+	QUIT:
 
 	printf("QUIT start\n");
-  /* Error reporting */
+	/* Error reporting */
 
-  if (error) {
-    printf("ERROR: %s\n", GRBgeterrormsg(env));
-    exit(1);
-  }
-  fclose(fp);
+	if (error) {
+	printf("ERROR: %s\n", GRBgeterrormsg(env));
+	exit(1);
+	}
+	fclose(fp);
 
-  /* Free model */
-  GRBfreemodel(model);
+	/* Free model */
+	GRBfreemodel(model);
 
-  /* Free environment */
-  GRBfreeenv(env);
- /*todo free all callocs*/
+	/* Free environment */
+	GRBfreeenv(env);
+	/*todo free all callocs*/
 	printf("QUIT end\n");
 
 	/*free copiedMtx*/
@@ -217,5 +191,49 @@ QUIT:
 		free(copiedMtx[i]);
 	}
 	free(copiedMtx);
-  return 0;
+	return 0;
+}
+
+int createMatrix(int** matrix, int size) {
+	int i;
+	if (matrix == NULL) {
+			return 999; /*if allocation failed, returns NULL*/
+		}
+	for(i=0 ;i < size; i++) {
+		matrix[i] = calloc(size, sizeof(int));
+	}
+	printf("%d\n",size);
+	return 0;
+
+}
+
+void decrement(int** matrix, int size){
+	int i,j;
+	for(i=0; i<size ; i++) {
+		  for(j=0; j<size ; j++) {
+			  matrix[i][j] = matrix[i][j] - 1;
+			}
+		}
+}
+
+void createEmptyProj(int dim, int** matrix, char** names, char* vtype, double* lb, char* cursor,char* namestorage ){
+	int i,j,v;
+	cursor = namestorage;
+		for (i = 0; i < dim; i++) {
+			for (j = 0; j < dim; j++) {
+				for (v = 0; v < dim; v++) {
+					if (matrix[i][j] == v) {
+						lb[i*dim*dim+j*dim+v] = 1;
+					}
+					else {
+						lb[i*dim*dim+j*dim+v] = 0;
+					}
+			vtype[i*dim*dim+j*dim+v] = GRB_BINARY;
+
+			names[i*dim*dim+j*dim+v] = cursor;
+			sprintf(names[i*dim*dim+j*dim+v], "x[%d,%d,%d]", i, j, v+1);
+			cursor += strlen(names[i*dim*dim+j*dim+v]) + 1;
+				}
+			}
+		}
 }
