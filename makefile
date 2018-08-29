@@ -1,9 +1,8 @@
 CC = gcc
-OBJS = main.o ilp_solver.o auxiliary_functions.o doubly_linked_list.o \
-sudoku_board.o 
+OBJS = main.o ilp_solver.o auxiliary_functions.o doubly_linked_list.o sudoku_board.o 
  
 EXEC = myprog
-COMP_FLAGS = -ansi -Wall -Wextra -Werror -pedantic-errors
+COMP_FLAGS = -ansi -O3 -Wall -Wextra -Werror -pedantic-errors
 GUROBI_COMP = -I/usr/local/lib/gurobi563/include
 GUROBI_LIB = -L/usr/local/lib/gurobi563/lib -lgurobi56
 
