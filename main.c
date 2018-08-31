@@ -28,20 +28,40 @@
 #define SUBDIM  3
 #define DIM    (SUBDIM*SUBDIM)
 
-int main(){
-	/*test1 - 2x2. one square left*/
-	char* path = "oneleft.txt";
+int loadAndSolve(Board* board, char* path) {
 	FILE* fptr = fopen(path,"r");
-	Board* board1 = createBoard(2, 2);
 	if (fptr == NULL) {
 		printf("couldn't load file\n");
 		return 0;
 	}
-	loadToBoard(fptr, board1);
-	solver(board1,0);
-	printBoard(board1);
-	solver(board1,1);
-	printBoard(board1);
+	loadToBoard(fptr, board);
+	printBoard(board);
+	solver(board,0);
+	printBoard(board);
+	solver(board,1);
+	printBoard(board);
+	fclose(fptr);
+	return 1;
+}
 
+int main(){
+	/*test1 - 2x2. one square left
+	char* path = "oneleft.txt";*/
+	char* path21 = "21_3left.txt";
+	FILE* fptr = fopen(path21,"r");
+	Board* board = createBoard(2, 2);
+	/*
+	printf("2x2\n");
+	loadAndSolve(board, path);
+	*/
+	printf("1x2\n");
+	if (fptr == NULL) {
+			printf("couldn't load file\n");
+			return 0;
+	}
+	loadToBoard(fptr, board);
+	printBoard(board);
+	/*loadAndSolve(board, path21);
+	destroyBoard(board);*/
 	return 0;
 }
