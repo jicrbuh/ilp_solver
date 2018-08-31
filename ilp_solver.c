@@ -40,7 +40,7 @@ int solver(Board* board, int saveToBoard) {
 	char*     namestorage= (char*)calloc(10*dim*dim*dim,sizeof(char));
 	char*     cursor;
 	double    objval;
-	double* 		sol = (double*)calloc(dim*dim*dim,sizeof(double));
+	double* 	sol = (double*)calloc(dim*dim*dim,sizeof(double));
 	int ** 	copiedMtx;
 
 	/*allocate memory for the board's matrix*/
@@ -57,6 +57,7 @@ int solver(Board* board, int saveToBoard) {
 	createEmptyProj(dim, copiedMtx, names, vtype, lb,cursor, namestorage);
 	error = GRBloadenv(&env, "sudoku.log");/*todo do we need this?*/
 	if (error) goto QUIT;
+
 
 	/*cancel gurobi's automatic printing*/
 	error = GRBsetintparam(env, GRB_INT_PAR_LOGTOCONSOLE, 0);
@@ -133,7 +134,7 @@ int solver(Board* board, int saveToBoard) {
 	GRBfreemodel(model);
 	GRBfreeenv(env);
 	freeOnlyMatrix(copiedMtx, dim);
-	free(ind); free(lb); free(vtype); free(names); free(namestorage); free(sol);
+	free(ind); free(lb); free(vtype); free(names); free(namestorage); free(sol); free(val);
 	if (error) {
 		return -1;
 	}

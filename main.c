@@ -29,39 +29,41 @@
 #define DIM    (SUBDIM*SUBDIM)
 
 int loadAndSolve(Board* board, char* path) {
+	int suc = 0;
 	FILE* fptr = fopen(path,"r");
+	printf("1\n");
 	if (fptr == NULL) {
+
 		printf("couldn't load file\n");
+		fclose(fptr);
+
 		return 0;
 	}
 	loadToBoard(fptr, board);
 	printBoard(board);
-	solver(board,0);
+	suc = solver(board,0);
+	if (suc == -1) {
+		printf("no sol found\n");
+	}
 	printBoard(board);
 	solver(board,1);
 	printBoard(board);
-	fclose(fptr);
-	return 1;
+
+	return suc;
 }
 
 int main(){
-	/*test1 - 2x2. one square left
-	char* path = "oneleft.txt";*/
-	char* path21 = "21_3left.txt";
-	FILE* fptr = fopen(path21,"r");
+	/*test1 - 2x2. one square left*/
+	char* path = "oneleft.txt";
+	char* path21 = "21_2left.txt";
+
+	char* pathno =  "notsolv.txt";
 	Board* board = createBoard(2, 2);
-	/*
 	printf("2x2\n");
 	loadAndSolve(board, path);
-	*/
-	printf("1x2\n");
-	if (fptr == NULL) {
-			printf("couldn't load file\n");
-			return 0;
-	}
-	loadToBoard(fptr, board);
-	printBoard(board);
-	/*loadAndSolve(board, path21);
-	destroyBoard(board);*/
+	loadAndSolve(board, path21);
+	loadAndSolve(board, pathno);
+	destroyBoard(board);
+	printf("reached end\n");
 	return 0;
 }
