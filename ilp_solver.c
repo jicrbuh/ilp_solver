@@ -15,7 +15,7 @@ void addRowConstr(int dim, int* ind, double* val,int *errorptr, GRBmodel *model)
 void addBlockConstr(int dim, int blockLength, int blockHeight, int* ind, double* val,int *errorptr, GRBmodel *model);
 void addConstr(int dim, int blockLength, int blockHeight, int* ind, double* val,int *errorptr, GRBmodel *model);
 void freeOnlyMatrix(int** matrix, int dim);
-void printArr(double* val, int dim);
+void printArr(double* val, int dim); /*todo delete only this function*/
 void insertSol(double* sol, int** matrix, int dim);
 int findCellSol(double* sol, int** matrix, int dim, int x, int y);
 void printMtxNoBoard(int** matrix, int dim);
@@ -58,12 +58,9 @@ int solver(Board* board, int saveToBoard) {
 	error = GRBloadenv(&env, "sudoku.log");/*todo do we need this?*/
 	if (error) goto QUIT;
 
-
 	/*cancel gurobi's automatic printing*/
 	error = GRBsetintparam(env, GRB_INT_PAR_LOGTOCONSOLE, 0);
-	if (error) {
-		goto QUIT;
-	}
+	if (error) goto QUIT;
 
 	/* Create new model */
 	error = GRBnewmodel(env, &model, "sudoku", dim*dim*dim, NULL, lb, NULL, vtype, names);
@@ -91,19 +88,18 @@ int solver(Board* board, int saveToBoard) {
 	error = GRBgetdblattr(model, GRB_DBL_ATTR_OBJVAL, &objval);
 	if (error) goto QUIT;
 
-	printf("\nOptimization complete\n");/*todo delete*/
+	/*printf("\nOptimization complete\n");/*todo delete*/
 
 	if (optimstatus == GRB_OPTIMAL) {
-		printf("Optimal objective: %.4e\n", objval);/*todo delete*/
-
+		/*printf("Optimal objective: %.4e\n", objval);/*todo delete*/
 	}
 
 	else if (optimstatus == GRB_INF_OR_UNBD) {
-		printf("Model is infeasible or unbounded\n");/*todo delete*/
+		/*printf("Model is infeasible or unbounded\n");/*todo delete*/
 		goto QUIT;
 	}
 	else {
-		printf("Optimization was stopped early\n\n");/*todo delete*/
+		/*printf("Optimization was stopped early\n\n");/*todo delete*/
 		goto QUIT;
 	}
 
@@ -114,10 +110,8 @@ int solver(Board* board, int saveToBoard) {
 	/*increment back copiedMtx*/
 	increment(copiedMtx, dim);
 
-
 	/*use the values in sol to write the solved matrix to copiedMtx*/
 	insertSol(sol, copiedMtx, dim);
-
 
 	/*if saveToBoard=1, copy the sudoku solution to board->matrix*/
 	if (saveToBoard == 1) {
@@ -127,8 +121,7 @@ int solver(Board* board, int saveToBoard) {
 	QUIT:
 	/* Error reporting */
 	if (error) {
-		printf("ERROR: %s\n", GRBgeterrormsg(env)); /*todo delete*/
-		/*exit(1); todo delete so won't exit, because the function needs to return -1 and free resources*/
+		/*printf("ERROR: %s\n", GRBgeterrormsg(env)); todo delete*/
 	}
 
 	/* Free model, env, copiedMtx*/
@@ -136,7 +129,6 @@ int solver(Board* board, int saveToBoard) {
 	GRBfreeenv(env);
 	freeOnlyMatrix(copiedMtx, dim);
 	free(ind); free(lb); free(vtype); free(names); free(namestorage); free(sol); free(val);
-	printf("freed all of solve\n");
 	if (error) {
 		return -1;
 	}
@@ -304,7 +296,7 @@ void printArr(double* val, int dim) {
 			}
 		}
 }
-
+/*reads the solution from sol[] into matrix*/
 void insertSol(double* sol, int** matrix, int dim) {
 	/*sol is a [dim*dim*dim] array. matrix is a [dim][dim] matrix*/
 	int i,j, val;
