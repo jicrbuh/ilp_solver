@@ -97,13 +97,14 @@ int solver(Board* board, int saveToBoard) {
 		printf("Optimal objective: %.4e\n", objval);/*todo delete*/
 
 	}
+
 	else if (optimstatus == GRB_INF_OR_UNBD) {
 		printf("Model is infeasible or unbounded\n");/*todo delete*/
-		return -1;
+		goto QUIT;
 	}
 	else {
 		printf("Optimization was stopped early\n\n");/*todo delete*/
-		return -1;
+		goto QUIT;
 	}
 
 	/*if the optimization succeeded, save the solution to the dim*dim*dim matrix sol*/
@@ -135,6 +136,7 @@ int solver(Board* board, int saveToBoard) {
 	GRBfreeenv(env);
 	freeOnlyMatrix(copiedMtx, dim);
 	free(ind); free(lb); free(vtype); free(names); free(namestorage); free(sol); free(val);
+	printf("freed all of solve\n");
 	if (error) {
 		return -1;
 	}

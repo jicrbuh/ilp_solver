@@ -39,25 +39,30 @@ int loadAndSolve(Board* board, char* path) {
 
 		return 0;
 	}
-	loadToBoard(fptr, board);
+	loadToBoard(fptr, board); /*note that loadToBoard frees fptr, so don't free it again!*/
 	printBoard(board);
 	suc = solver(board,0);
 	if (suc == -1) {
 		printf("no sol found\n");
 	}
 	printBoard(board);
-	solver(board,1);
+	suc = solver(board,1);
+	if (suc == -1) {
+			printf("no sol found\n");
+	}
 	printBoard(board);
 
 	return suc;
 }
 
 int main(){
-	/*test1 - 2x2. one square left*/
+	/*test1 - 2x2 block. one cells left*/
 	char* path = "oneleft.txt";
+	/*test2 - 2x1 block. two cells left*/
 	char* path21 = "21_2left.txt";
-
+	/*test3 - 2x2 block. unsolvable*/
 	char* pathno =  "notsolv.txt";
+
 	Board* board = createBoard(2, 2);
 	printf("2x2\n");
 	loadAndSolve(board, path);
