@@ -9,7 +9,7 @@
 #define ILP_SOLVER_H_
 #include "sudoku_board.h"
 
-int solver(Board* board);
+int solver(Board* board, int saveToBoard);
 
 
 #endif /* ILP_SOLVER_H_ */

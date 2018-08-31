@@ -38,7 +38,10 @@ int main(){
 		return 0;
 	}
 	loadToBoard(fptr, board1);
-	solver(board1);
+	solver(board1,0);
+	printBoard(board1);
+	solver(board1,1);
+	printBoard(board1);
 
 	return 0;
 }

@@ -57,8 +57,6 @@ void copyMatrix(int** orig, int** new, int size){
 	printf("breakaa\n"); /*TODO delete*/
 	for(i = 0; i < size; i++){
 		for(j = 0; j < size; j++){
-			printf("each iteration\n"); /*TODO delete*/
-			printf("%d\n",orig[i][j]); /*TODO delete*/
 			new[i][j] = orig[i][j];
 		}
 	}

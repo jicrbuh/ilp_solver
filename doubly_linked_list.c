@@ -15,7 +15,7 @@ DLL* createEmptyList() {
 	DLL* list = (DLL*)malloc(sizeof(DLL));
 	list->head=NULL;
 	list->tail=NULL;
-	printf("size of list: %d\n",(int)sizeof(DLL));
+	
 	return list;
 }
 
