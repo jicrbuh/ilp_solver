@@ -47,8 +47,6 @@ int solver(Board* board, int saveToBoard) {
 	copiedMtx = calloc(board->edgeSize, sizeof(int*));
 	createMatrix(copiedMtx, dim);
 
-
-
 	/*copied the matrix from the board to copiedBoard*/
 	copyMatrix(board->matrix, copiedMtx, dim);
 
@@ -63,7 +61,6 @@ int solver(Board* board, int saveToBoard) {
 	/*cancel gurobi's automatic printing*/
 	error = GRBsetintparam(env, GRB_INT_PAR_LOGTOCONSOLE, 0);
 	if (error) {
-		printf("couldn't set not-print parameter\n");
 		goto QUIT;
 	}
 
@@ -269,18 +266,16 @@ void addBlockConstr(int dim, int blockLength, int blockHeight, int* ind, double*
 void addConstr(int dim, int blockLength, int blockHeight, int* ind, double* val,int *errorptr, GRBmodel *model){
 	/* Each value must appear once in each row */
 	addRowConstr(dim,ind, val,errorptr, model);
-	/*printf("break 6\n");*/
-	if (*errorptr) return;
 
+	if (*errorptr) return;
 
 	/* Each value must appear once in each column */
 	addColConstr(dim,ind, val,errorptr, model);
-	/*printf("break 7\n");*/
-	if (*errorptr) return;
 
+	if (*errorptr) return;
 	/* Each value must appear once in each subgrid */
 	addBlockConstr(dim, blockLength, blockHeight, ind, val, errorptr, model);
-	/*printf("break 8\n");*/
+
 	if (*errorptr) return;
 
 }
